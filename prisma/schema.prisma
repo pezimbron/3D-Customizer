@@ -1,0 +1,41 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model ModelConfig {
+  id        Int      @id @default(autoincrement())
+  name      String
+  modelPath String
+  parts     Part[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Part {
+  id            Int         @id @default(autoincrement())
+  name          String
+  type          String // "color", "texture", "model"
+  options       String? // JSON string of options
+  defaultValue  String
+  modelConfig   ModelConfig @relation(fields: [modelConfigId], references: [id])
+  modelConfigId Int
+  dependencies  Dependency[] @relation("SourcePart")
+  dependentOn   Dependency[] @relation("TargetPart")
+}
+
+model Dependency {
+  id            Int      @id @default(autoincrement())
+  sourcePart    Part     @relation("SourcePart", fields: [sourcePartId], references: [id])
+  sourcePartId  Int
+  targetPart    Part     @relation("TargetPart", fields: [targetPartId], references: [id])
+  targetPartId  Int
+  rule          String // JSON string containing the dependency logic
+}
